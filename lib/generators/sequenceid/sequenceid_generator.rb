@@ -9,18 +9,21 @@ class SequenceidGenerator < ActiveRecord::Generators::Base
   def initialize_sequenceid
     parent_resource_s=@_initializer[0][0]
     nested_resource_s=@_initializer[0][1]
-    if (!parent_resource_s || !nested_resource_s)
+    skip = @_initializer[0][2]
+    if (!parent_resource_s || !nested_resource_s || (skip.present? && !skip.is_a?(Proc)))
       puts "Usage: rails generate sequenceid <parent resource> <nested resource> "
       puts "eg, rails generate company user"
       puts "the nested resource must be in someway nested to the parent resource to avoid a conflict in url's"
       puts "eg, if a company is represented by subdomain of the url, you will always have a unique url for the user even though the sequence id's might be shared"
       puts "so if two company's exist, 7vals and sevenvals, then their first users will have urls: http://7vals.easyofficeinventory.com/users/1 and http://sevenvals.easyofficeinventory.com/users/1"
       puts "note how the users/1 is now used to get the sequence number and NOT the unique id of the user"
+      puts "please use a valid lambda"
       exit
     end
     begin
       @parent_resource=eval parent_resource_s.classify
       @nested_resource=eval nested_resource_s.classify
+      @skip = skip
       if((!@parent_resource.ancestors.include?ORM) || (!@nested_resource.ancestors.include?ORM))
         puts "ERROR: both #{parent_resource_s} and #{nested_resource_s} need to be ActiveRecords"
         exit

@@ -20,6 +20,8 @@ module Sequenceid
       protected
 
       def set_sequence_num
+        return if skip?
+
         if new_record?
           self.sequence_num  = relation_sequence.reorder("id").last.try(:sequence_num) || 0  # REORDER to override order clause if default scope applied on nested_resource
           self.sequence_num += 1
@@ -28,6 +30,8 @@ module Sequenceid
       end
 
       def reset_sequence_num
+        return if skip?
+
         @save_counter ||= 1
         if new_record? && valid?
           if @save_counter < 3
@@ -51,6 +55,10 @@ module Sequenceid
       def get_sti_parent_class(klass)
         return klass if (klass.superclass == ApplicationRecord || klass.superclass == Object || klass.superclass.nil?)
         get_sti_parent_class(klass.superclass)
+      end
+
+      def skip?
+        @skip&.call(self)
       end
 
     end

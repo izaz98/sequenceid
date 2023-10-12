@@ -2,9 +2,13 @@ class AddSequenceNumTo<%= @nested_resource.to_s.downcase.pluralize.camelize %> <
   <% @parent_resource_name = @parent_resource.to_s.downcase %>
   <% @nested_resource_name = @nested_resource.to_s.downcase.pluralize %>
   def self.up
-    add_column :<%= @nested_resource_name %>, :sequence_num, :integer, null: false
-    update_sequence_num_values
-    add_index :<%= @nested_resource_name %>, [:sequence_num,:<%= @parent_resource_name %>_id], unique: true
+    if <%= @nested_resource_name %> == 'users'
+      add_index :<%= @nested_resource_name %>, [:entity_unique_id, :<%= @parent_resource_name %>_id, :entity_type], unique: true
+    else
+      add_column :<%= @nested_resource_name %>, :sequence_num, :integer, null: false
+      update_sequence_num_values
+      add_index :<%= @nested_resource_name %>, [:sequence_num,:<%= @parent_resource_name %>_id], unique: true
+    end
   end
 
   def self.down
